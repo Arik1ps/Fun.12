@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Answer Honestly ❤️</title>
+
+<style>
+body {
+  background-color: #ffe9b9;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  margin: 0;
+  padding: 50px 20px;
+  overflow: hidden;
+}
+
+h2 {
+  font-size: 24px;
+  margin-bottom: 40px;
+}
+
+button {
+  padding: 15px 30px;
+  font-size: 18px;
+  margin: 15px;
+  border: none;
+  border-radius: 12px;
+  transition: 0.3s;
+  cursor: pointer;
+}
+
+#yesBtn {
+  background: #ff4d6d;
+  color: white;
+}
+
+#noBtn {
+  background: #ccc;
+}
+
+.emoji {
+  position: absolute;
+  font-size: 30px;
+  animation: float 2s linear forwards;
+}
+
+@keyframes float {
+  0% { opacity:1; transform: translateY(0); }
+  100% { opacity:0; transform: translateY(-100px); }
+}
+
+.fullYes {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  font-size: 40px !important;
+  z-index: 9999;
+}
+</style>
+</head>
+
+<body>
+
+<h2 id="question">Loading question...</h2>
+
+<button id="yesBtn">Yes</button>
+<button id="noBtn">No</button>
+
+<script type="module">
+// --------------- Firebase Setup ---------------
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getDatabase, ref, get, update, onValue } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDOApMtccsUPrAhLOKeRQst37Fv6nIZLsI",
+  authDomain: "fun1-d534f.firebaseapp.com",
+  databaseURL: "https://fun1-d534f-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "fun1-d534f"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// --------------- Get Question ID ---------------
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
+
+if (!id) {
+  document.body.innerHTML = "<h2>Invalid Link ❌</h2>";
+  throw new Error("No ID provided");
+}
+
+const questionRef = ref(db, "questions/" + id);
+
+const yesBtn = document.getElementById("yesBtn");
+const noBtn = document.getElementById("noBtn");
+let noCount = 0;
+let yesScale = 1;
+let noScale = 1;
+
+// --------------- Load Question from Firebase ---------------
+onValue(questionRef, (snapshot) => {
+  if (!snapshot.exists()) {
+    document.getElementById("question").innerText = "Question not found ❌";
+    yesBtn.disabled = true;
+    noBtn.disabled = true;
+    return;
+  }
+  const data = snapshot.val();
+  document.getElementById("question").innerText = data.question;
+  noCount = data.noCount || 0;
+});
+
+// --------------- NO BUTTON ---------------
+noBtn.addEventListener("click", async () => {
+  const snap = await get(questionRef);
+  const data = snap.val();
+
+  noCount = (data.noCount || 0) + 1;
+
+  // Update Firebase
+  update(questionRef, { noCount: noCount });
+
+  // ❤️ Romantic phase (1-4 clicks)
+  if (noCount <= 4) {
+    yesScale += 0.2;
+    yesBtn.style.transform = `scale(${yesScale})`;
+  }
+
+  // 🥺 Cute emotional phase (5-6 clicks)
+  if (noCount >= 5 && noCount <= 6) {
+    moveNoButton();
+    spawnEmoji();
+  }
+
+  // 😈 Devil phase (7+ clicks)
+  if (noCount >= 7) {
+    noScale -= 0.2;
+    noBtn.style.transform = `scale(${noScale})`;
+
+    if (noScale <= 0.3) {
+      noBtn.style.display = "none";
+      yesBtn.classList.add("fullYes");
+    }
+  }
+});
+
+// --------------- YES BUTTON ---------------
+yesBtn.addEventListener("click", async () => {
+  const snap = await get(questionRef);
+  const data = snap.val();
+
+  if (!data.yesPressed) {
+    // Log YES click with timestamp
+    await update(questionRef, {
+      yesPressed: true,
+      yesTime: new Date().toLocaleString()
+    });
+  }
+
+  alert(data.message || "I knew you would say YES ❤️");
+});
+
+// --------------- Move NO button ---------------
+function moveNoButton() {
+  const x = Math.random() * (window.innerWidth - noBtn.offsetWidth - 20);
+  const y = Math.random() * (window.innerHeight - noBtn.offsetHeight - 20);
+
+  noBtn.style.position = "absolute";
+  noBtn.style.left = x + "px";
+  noBtn.style.top = y + "px";
+}
+
+// --------------- Spawn emoji ---------------
+function spawnEmoji() {
+  const emoji = document.createElement("div");
+  emoji.innerText = "🥺";
+  emoji.classList.add("emoji");
+
+  emoji.style.left = Math.random() * (window.innerWidth - 30) + "px";
+  emoji.style.top = Math.random() * (window.innerHeight - 30) + "px";
+
+  document.body.appendChild(emoji);
+
+  setTimeout(() => {
+    emoji.remove();
+  }, 2000);
+}
+</script>
+
+</body>
+</html>

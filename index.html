@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Your Question ❤️</title>
+
+<style>
+body {
+  background-color: #ffebaaad;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  padding: 20px;
+  margin: 0;
+}
+
+.container {
+  max-width: 500px;
+  margin: auto;
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+h2 {
+  margin-bottom: 20px;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+textarea {
+  resize: none;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  font-size: 18px;
+  background: #ff4d6d;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+#linkBox {
+  margin-top: 20px;
+  word-break: break-all;
+  font-size: 14px;
+}
+
+.link-card {
+  background: #f5f5f5;
+  padding: 10px;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Create Your Romantic Trap 😈❤️</h2>
+
+<input type="text" id="questionInput" placeholder="Write your question...">
+
+<textarea id="messageInput" rows="4"
+placeholder="Write the popup message when YES is pressed..."></textarea>
+
+<button onclick="generateLink()">Generate Link</button>
+
+<div id="linkBox"></div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDOApMtccsUPrAhLOKeRQst37Fv6nIZLsI",
+  authDomain: "fun1-d534f.firebaseapp.com",
+  databaseURL: "https://fun1-d534f-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "fun1-d534f"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+window.generateLink = async function () {
+
+  const question = document.getElementById("questionInput").value.trim();
+  const message = document.getElementById("messageInput").value.trim();
+
+  if (!question || !message) {
+    alert("Please fill both fields ❤️");
+    return;
+  }
+
+  const newQuestion = push(ref(db, "questions"));
+
+  await set(newQuestion, {
+    question: question,
+    message: message,
+    noCount: 0,
+    yesPressed: false,
+    yesTime: null
+  });
+
+  const id = newQuestion.key;
+
+  const playLink = `${window.location.origin}/play.html?id=${id}`;
+  const dashLink = `${window.location.origin}/dashboard.html?id=${id}`;
+
+  document.getElementById("linkBox").innerHTML = `
+    <div class="link-card">
+      <strong>Send this link:</strong><br>
+      <a href="${playLink}" target="_blank">${playLink}</a>
+    </div>
+
+    <div class="link-card">
+      <strong>Your Dashboard:</strong><br>
+      <a href="${dashLink}" target="_blank">${dashLink}</a>
+    </div>
+  `;
+};
+
+</script>
+
+</body>
+</html>

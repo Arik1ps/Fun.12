@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Dashboard 📊</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f8f8f8;
+  text-align: center;
+  padding: 30px 15px;
+  margin: 0;
+}
+
+h2 {
+  margin-bottom: 30px;
+  font-size: 22px;
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  margin: 20px auto;
+  max-width: 400px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.stat {
+  font-size: 20px;
+  margin: 15px 0;
+}
+
+.yes {
+  color: green;
+  font-weight: bold;
+}
+
+.no {
+  color: red;
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<h2>📊 Live Stats Dashboard</h2>
+
+<div class="card">
+  <div class="stat">
+    ❌ No pressed: <span id="noCount" class="no">0</span>
+  </div>
+  <div class="stat">
+    ✅ Yes status: <span id="yesStatus">Not yet 😢</span>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+
+// 🔥 Replace with your Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyDOApMtccsUPrAhLOKeRQst37Fv6nIZLsI",
+  authDomain: "fun1-d534f.firebaseapp.com",
+  databaseURL: "https://fun1-d534f-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "fun1-d534f"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// Get question ID from URL
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
+
+if (!id) {
+  document.body.innerHTML = "<h2>Invalid Dashboard Link ❌</h2>";
+  throw new Error("No ID provided");
+}
+
+const questionRef = ref(db, "questions/" + id);
+
+// Listen live for changes
+onValue(questionRef, (snapshot) => {
+  if (!snapshot.exists()) {
+    document.body.innerHTML = "<h2>Question Not Found ❌</h2>";
+    return;
+  }
+
+  const data = snapshot.val();
+
+  document.getElementById("noCount").innerText = data.noCount || 0;
+
+  if (data.yesPressed) {
+    document.getElementById("yesStatus").innerHTML = 
+      `<span class="yes">YES ❤️ at ${data.yesTime}</span>`;
+  } else {
+    document.getElementById("yesStatus").innerText = "Not yet 😢";
+  }
+});
+</script>
+
+</body>
+</html>
